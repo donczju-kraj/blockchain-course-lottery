@@ -5,8 +5,6 @@ const { Web3 } = require('web3');
 const web3 = new Web3(ganache.provider());
 const { abi, evm } = require('../compile');
 
-const MIN_WEI = web3.utils.toWei('0.02', 'ether');
-
 let lottery;
 let accounts;
 
@@ -76,4 +74,28 @@ describe('Lottery Contract', () => {
     }
   })
 
+  it('manager can call pickWinner', async () => {
+    await lottery.methods.enter().send({
+      from: accounts[2],
+      value: web3.utils.toWei('0.02', 'ether')
+    })
+
+     const result = await lottery.methods.pickWinner().send({
+      from: accounts[0],
+      gas: '1000000'
+    })
+    assert(result);
+  })
+
+  it('not manager cannot call pickWinner', async () => {
+    try {
+      await lottery.methods.pickWinner().send({
+        from: accounts[1]
+      })
+      assert(false);
+    } catch (error) {
+      assert(error);
+      return;
+    }
+  })
 });
