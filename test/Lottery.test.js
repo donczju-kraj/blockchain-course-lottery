@@ -10,7 +10,6 @@ let accounts;
 
 beforeEach(async () => {
   accounts = await web3.eth.getAccounts();
-  console.log('TROLOLO')
 
   lottery = await new web3.eth.Contract(abi)
     .deploy({ data: evm.bytecode.object })
@@ -31,7 +30,36 @@ describe('Lottery Contract', () => {
       from: accounts[0]
     })
 
+    console.log('players:', players);
+
     assert.equal(accounts[0], players[0]);
     assert.equal(1, players.length);
+  })
+
+  it('allows to enter multiple accounts', async () => {
+    await lottery.methods.enter().send({
+      from: accounts[0],
+      value: web3.utils.toWei('0.02', 'ether')
+    })
+
+    await lottery.methods.enter().send({
+      from: accounts[1],
+      value: web3.utils.toWei('0.02', 'ether')
+    })
+
+    await lottery.methods.enter().send({
+      from: accounts[2],
+      value: web3.utils.toWei('0.02', 'ether')
+    })
+
+    const players = await lottery.methods.getPlayers().call({
+      from: accounts[0]
+    })
+
+    assert.ok(players.includes(accounts[0]));
+    assert.ok(players.includes(accounts[1]));
+    assert.ok(players.includes(accounts[2]));
+    assert.equal(3, players.length);
+    
   })
 });
