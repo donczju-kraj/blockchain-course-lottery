@@ -5,6 +5,8 @@ const { Web3 } = require('web3');
 const web3 = new Web3(ganache.provider());
 const { abi, evm } = require('../compile');
 
+const MIN_WEI = web3.utils.toWei('0.02', 'ether');
+
 let lottery;
 let accounts;
 
@@ -29,8 +31,6 @@ describe('Lottery Contract', () => {
     const players = await lottery.methods.getPlayers().call({
       from: accounts[0]
     })
-
-    console.log('players:', players);
 
     assert.equal(accounts[0], players[0]);
     assert.equal(1, players.length);
@@ -62,4 +62,18 @@ describe('Lottery Contract', () => {
     assert.equal(3, players.length);
     
   })
+
+  it('requires a minimum amount of ether to enter', async () => { 
+    try {
+      await lottery.methods.enter().send({
+        from: accounts[0],
+        value: web3.utils.toWei('0.002', 'ether')
+      })
+      assert(false);
+    } catch (error) {
+      assert(error);
+      return;
+    }
+  })
+
 });
